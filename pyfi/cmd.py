@@ -17,8 +17,6 @@ def cmd():
 
     args = parser.parse_args()
 
-    print(args)
-
     for symbol in args.symbol:
         stocks = InfluxStocks(symbol,
                               uri=args.uri,
