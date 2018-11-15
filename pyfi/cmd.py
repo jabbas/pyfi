@@ -12,7 +12,7 @@ def cmd():
     parser.add_argument('--key', '-k', type=str, metavar='APIKEY',
                         help='https://www.alphavantage.co API key')
 
-    parser.add_argument('symbol', type=str, nargs='+',
+    parser.add_argument('symbol', metavar='SYMBOL', type=str, nargs='+',
                         help='Stocks symbol')
 
     args = parser.parse_args()
