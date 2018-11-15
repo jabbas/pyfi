@@ -1,0 +1,4 @@
+alpha-vantage==2.1.0
+influxdb==5.2.0
+pytz==2018.7
+YURL==0.13
