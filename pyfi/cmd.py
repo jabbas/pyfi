@@ -1,10 +1,21 @@
 from argparse import ArgumentParser
 
+from .log import log, logging
 from .parser import InfluxStocks
 from .alpha import Quote
 
 
 def cmd():
+
+    log = logging.getLogger('pyfi')
+    log.setLevel(logging.DEBUG)
+    format = '%(asctime)s: %(name)s - %(levelname)s - %(message)s'
+    formatter = logging.Formatter(format)
+
+    ch = logging.StreamHandler()
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
     parser = ArgumentParser(description='Grab stocks prices into influxdb')
 
     parser.add_argument('--uri', '-u', type=str,

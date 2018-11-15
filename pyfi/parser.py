@@ -4,6 +4,7 @@ from datetime import datetime
 from yurl import URL
 from influxdb import InfluxDBClient
 
+from .log import log
 from .alpha import Quote
 
 
@@ -16,6 +17,7 @@ class NoAPIKEYException(Exception):
 
 
 def InfluxDB(uri):
+    log.debug('Parsing uri "{}"'.format(uri))
     p = URL(uri)
 
     if p.scheme != 'influx':
@@ -35,6 +37,7 @@ class InfluxStocks(object):
     utc = timezone('UTC')
 
     def __init__(self, symbol, uri, quote=None, api_key=None):
+        log.debug('Initialize {}'.format(self.__class__.__name__))
         if quote:
             self.quote = quote
         else:
@@ -50,6 +53,7 @@ class InfluxStocks(object):
         self.measurement = 'stocks_intraday'.format(symbol).lower()
 
     def fetch(self):
+        log.debug('Fetching')
         (data, metadata) = self.quote.get(self.symbol)
         tz = timezone(list(metadata.values())[5])
         fetched_symbol = list(metadata.values())[1]
@@ -77,6 +81,7 @@ class InfluxStocks(object):
             }
 
     def write(self):
+        log.debug('Writing')
         last = None
         influx_data = list()
         for d in self.fetch():
@@ -84,7 +89,7 @@ class InfluxStocks(object):
                 last = self.last(d['tags']['symbol'])
 
             if d['time'] <= last:
-                print('Skipping {}: {} <= {}'.format(
+                log.debug('Skipping {}: {} <= {}'.format(
                                                      d['tags']['symbol'],
                                                      d['time'],
                                                      last))
@@ -106,4 +111,6 @@ class InfluxStocks(object):
                 self._last = datetime.strptime(point['time'], self.iso_format)
             else:
                 self._last = datetime.fromtimestamp(0)
+
+            log.debug('Last is {}'.format(self._last.astimezone(self.utc)))
         return self._last.astimezone(self.utc)
