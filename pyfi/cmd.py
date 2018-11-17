@@ -1,20 +1,15 @@
 from argparse import ArgumentParser
+import sys
+import logging
 
-from .log import log, logging
 from .parser import InfluxStocks
 from .alpha import Quote
 
+logging.basicConfig(stream=sys.stderr,
+                    format='%(asctime)s:%(levelname)s:%(name)s: - %(message)s')
+
 
 def cmd():
-
-    log = logging.getLogger('pyfi')
-    log.setLevel(logging.DEBUG)
-    format = '%(asctime)s: %(name)s - %(levelname)s - %(message)s'
-    formatter = logging.Formatter(format)
-
-    ch = logging.StreamHandler()
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
 
     parser = ArgumentParser(description='Grab stocks prices into influxdb')
 
@@ -23,13 +18,26 @@ def cmd():
     parser.add_argument('--key', '-k', type=str, metavar='APIKEY',
                         help='https://www.alphavantage.co API key')
 
+    parser.add_argument('--loglevel', '-l', type=str, metavar='LEVEL',
+                        default='CRITICAL',
+                        help='log level (default: CRITICAL)')
+
     parser.add_argument('symbol', metavar='SYMBOL', type=str, nargs='+',
                         help='Stocks symbol')
 
     args = parser.parse_args()
 
-    for symbol in args.symbol:
-        stocks = InfluxStocks(symbol,
-                              uri=args.uri,
-                              quote=Quote(args.key))
-        stocks.write()
+    try:
+        log = logging.getLogger()
+        log.setLevel(args.loglevel.upper())
+
+        for symbol in args.symbol:
+            stocks = InfluxStocks(symbol,
+                                  uri=args.uri,
+                                  quote=Quote(args.key))
+            stocks.write()
+    except Exception as e:
+        if args.loglevel == 'DEBUG':
+            raise e
+
+        logging.critical(e)
